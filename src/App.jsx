@@ -1,19 +1,20 @@
 import React from 'react';
 //import './App.css';
-import { Button, Flex, Input, Header } from '@fluentui/react-northstar'
+import { Button, Flex, Input, Header, Text } from '@fluentui/react-northstar'
 import { PlayIcon, MicIcon } from '@fluentui/react-icons-northstar'
 
 class App extends React.Component {
   constructor(props) {
     super(props);
-    //this.state = { voices: []};
+    this.state = { locale: null, displayName: null, nativeName: null, url: null };
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.generateURL = this.generateURL.bind(this);
   }
 
   componentDidMount() {
     var synth = window.speechSynthesis;
     //var inputForm = document.querySelector('form');
-    //var inputTxt = document.querySelector('.txt');
+    //var nativeInputTxt = document.querySelector('.txt');
     var voiceSelect = document.querySelector('select');
     var voices = [];
 
@@ -27,7 +28,7 @@ class App extends React.Component {
         const aname = a.name.toUpperCase(), bname = b.name.toUpperCase();
         if ( aname < bname ) return -1;
         else if ( aname == bname ) return 0;
-        else return +1;
+        else return +1
       });
       //this.setState({voices});
       var selectedIndex = voiceSelect.selectedIndex < 0 ? 0 : voiceSelect.selectedIndex;
@@ -58,10 +59,10 @@ class App extends React.Component {
         />
           <form onSubmit={this.handleSubmit}>
             <div>
-              <Input label="Your preferred name in English" />
+              <Input className="displayName" label="Your preferred name in English" />
             </div>
             <div>
-              <Input label="Your preferred name in native script" />
+              <Input className="nativeName" label="Your preferred name in native script" />
             </div>
             <div>
               <label>
@@ -80,8 +81,16 @@ class App extends React.Component {
           </form>
           <div className="Mic">
             <Flex gap="gap.smaller">
-              <Button content="Generate URL" secondary />
-              <Button icon={<MicIcon />} content="Record it myself"  iconPosition="before" tinted />
+              <Button onClick={this.generateURL}　content="Generate URL" secondary />
+              <Button disabledFocusable icon={<MicIcon />} content="Record it myself"  iconPosition="before" tinted />
+            </Flex>
+          </div>
+          <div className="SharingURL">
+            <Text content="Share your URL" />
+            <Text content={this.state.url} />
+            <Text content={`http://howtosaymy.name/?displayName=${this.state.displayName}&locale=${this.state.locale}&nativeName=${this.state.nativeName}`} />
+            <Flex gap="gap.smaller">
+              <Button icon={<PlayIcon />} content="Copy URL" iconPosition="before" primary />
             </Flex>
           </div>
       </div>
@@ -91,7 +100,9 @@ class App extends React.Component {
   handleSubmit(e) {
     var synth = window.speechSynthesis;
     //var inputForm = document.querySelector('form');
-    var inputTxt = document.querySelector('Input');
+    var displayInputTxt = document.querySelector('.displayName input');
+    var nativeInputTxt = document.querySelector('.nativeName input');
+    console.log(nativeInputTxt)
     var voiceSelect = document.querySelector('select');
     var voices = [];
 
@@ -103,24 +114,27 @@ class App extends React.Component {
     });
 
     e.preventDefault();
-    speak();
-    inputTxt.blur();
+  
 
-    function speak(){
+    
       if (synth.speaking) {
           console.error('speechSynthesis.speaking');
           return;
       }
-      if (inputTxt.value !== '') {
-      var utterThis = new SpeechSynthesisUtterance(inputTxt.value);
+      if (nativeInputTxt.value !== '') {
+        console.log(nativeInputTxt.value)
+      var utterThis = new SpeechSynthesisUtterance(nativeInputTxt.value);
       utterThis.onend = function (e) {
           console.log('SpeechSynthesisUtterance.onend');
       }
       utterThis.onerror = function (e) {
           console.error('SpeechSynthesisUtterance.onerror');
       }
+      console.log(voiceSelect.selectedOptions)
       var selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
-      console.log(selectedOption)
+      console.log(selectedOption);
+      
+      //this.setState({ displayName: displayInputTxt.value, locale: selectedOption, nativeName: nativeInputTxt.value});
       console.log(voices)
       for(var i = 0; i < voices.length ; i++) {
         if(voices[i].name === selectedOption) {
@@ -130,7 +144,19 @@ class App extends React.Component {
       }
       synth.speak(utterThis);
       }
-    }    
+      nativeInputTxt.blur();
+  }
+
+  generateURL(){
+    //var synth = window.speechSynthesis;
+    //var inputForm = document.querySelector('form');
+    var displayInputTxt = document.querySelector('.displayName input');
+    var nativeInputTxt = document.querySelector('.nativeName input');
+    //console.log(nativeInputTxt)
+    var voiceSelect = document.querySelector('select');
+    var selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
+    this.setState({ displayName: displayInputTxt.value, locale: selectedOption, nativeName: nativeInputTxt.value});
+    this.setState({url:`http://howtosaymy.name/?displayName=${this.state.displayName}&locale=${this.state.locale}&nativeName=${this.state.nativeName}`});
   }
 }
 
